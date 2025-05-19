@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center mb-4">Profil de {{ request.user.get_full_name|default:request.user.username }}</h2>
+  
+  {% if messages %}
+  <div class="messages mb-4">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">
+          {{ message }}
+      </div>
+      {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="card mx-auto" style="max-width: 600px;">
+    <div class="card-body">
+      <div class="text-center mb-4">
+        {% if request.user.profile_picture %}
+          <img src="{{ request.user.profile_picture.url }}" class="rounded-circle" width="150" height="150" alt="Photo de profil">
+        {% else %}
+          <img src="{% static 'images/default-profile.jpg' %}" class="rounded-circle" width="150" height="150" alt="Photo de profil par défaut">
+        {% endif %}
+      </div>
+
+      <div class="user-info">
+        {% if request.user.first_name or request.user.last_name %}
+        <p><strong>Nom complet :</strong> {{ request.user.get_full_name }}</p>
+        {% endif %}
+        <p><strong>Nom d'utilisateur :</strong> {{ request.user.username }}</p>
+        <p><strong>Email :</strong> {{ request.user.email }}</p>
+        
+        <p><strong>Rôle :</strong> 
+        {% if request.user.is_teacher %}
+          Enseignant
+          {% if request.user.cv %}
+            <br><strong>CV :</strong> <a href="{{ request.user.cv.url }}" target="_blank">Voir le CV</a>
+          {% endif %}
+          {% if request.user.publications %}
+            <br><strong>Publications :</strong> <a href="{{ request.user.publications.url }}" target="_blank">Voir les publications</a>
+          {% endif %}
+        {% elif request.user.is_student %}
+          Étudiant
+        {% elif request.user.is_superuser %}
+          Administrateur
+        {% endif %}
+        </p>
+      </div>
+
+      <div class="text-center mt-4">
+        <a href="{% url 'edit_profile' %}" class="btn btn-primary">Modifier le profil</a>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Retour au tableau de bord</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.user-info p {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+.user-info p:last-child {
+  border-bottom: none;
+}
+</style>
+{% endblock %}

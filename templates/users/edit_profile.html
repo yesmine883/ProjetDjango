@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Modifier le Profil{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Modifier mon profil</h2>
+
+    {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" class="form-profile">
+        {% csrf_token %}
+        
+        {{ form|crispy }}
+
+        {% if user.profile_picture %}
+        <div class="mt-2 mb-3">
+            <p>Photo de profil actuelle:</p>
+            <img src="{{ user.profile_picture.url }}" alt="Current profile picture" class="img-thumbnail" style="max-width: 100px;">
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+        <a href="{% url 'profile' %}" class="btn btn-secondary">Annuler</a>
+    </form>
+</div>
+
+<style>
+    .form-profile {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        max-width: 600px;
+        margin: auto;
+    }
+    .form-profile label {
+        font-weight: 600;
+    }
+</style>
+{% endblock %}

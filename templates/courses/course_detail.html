@@ -1,0 +1,450 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-4">
+    {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <h1>{{ course.title }}</h1>
+    <p>{{ course.description }}</p>
+    <p><strong>Prix : </strong> {{ course.price }} €</p>
+
+    <!-- Boutons pour étudiants -->
+    {% if user.is_authenticated and user.is_student and not is_enrolled %}
+        <div class="mt-4 d-flex gap-2">
+            {% if course.price > 0 %}
+                <a href="{% url 'checkout' course.id %}" class="btn btn-warning">
+                    Payer {{ course.price }} € et s'inscrire
+                </a>
+            {% else %}
+                <a href="{% url 'enroll_course' course.id %}" class="btn btn-success">
+                    S'inscrire gratuitement
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <!-- Upload TD/TP par enseignant -->
+    {% if user.is_authenticated and user.is_teacher %}
+        <form id="uploadForm" method="post" enctype="multipart/form-data" action="{% url 'upload_assignment' course.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="assignment_type" id="assignmentType">
+            <input type="file" name="file" id="fileInput" style="display: none;">
+            <div class="mt-3">
+                <button type="button" id="btnAddTD" class="btn btn-primary">Ajouter un TD</button>
+                <button type="button" id="btnAddTP" class="btn btn-secondary">Ajouter un TP</button>
+            </div>
+        </form>
+    {% endif %}
+
+    {% if user.is_authenticated and user.is_teacher and user == course.teacher %}
+        <a href="{% url 'course_students' course.id %}" class="btn btn-info mt-3">
+            Voir les étudiants inscrits
+        </a>
+    {% endif %}
+
+    <!-- Groupes TD -->
+    {% if assignments %}
+        <div class="assignments-section mt-4">
+            <!-- TD Section -->
+            <div class="td-section mb-4">
+                <h3>TD :</h3>
+                <div class="list-group">
+                    {% for assignment in assignments %}
+                        {% if assignment.type == 'TD' %}
+                            <div class="list-group-item" id="assignment-{{ assignment.id }}">
+                                <h5 class="mb-3">{{ assignment.title }}</h5>
+                                <p>{{ assignment.description }}</p>
+
+                                {% if assignment.file %}
+                                    <p><strong>Fichier du TD :</strong>
+                                        <a href="{{ assignment.file.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-download"></i> Télécharger le TD
+                                        </a>
+                                    </p>
+
+                                    {% if user.is_authenticated and user.is_student and is_enrolled %}
+                                    <div class="submission-area mt-3 p-3">
+                                        <h6 class="mb-3">Soumettre votre travail :</h6>
+                                        {% with student_submission=assignment.student_submission %}
+                                            {% if student_submission %}
+                                                <div class="current-submission mb-3">
+                                                    <p class="mb-2"><strong>Votre soumission actuelle :</strong></p>
+                                                    <div class="d-flex align-items-center">
+                                                        <a href="{{ student_submission.file.url }}" target="_blank" class="btn btn-sm btn-outline-info me-2">
+                                                            <i class="fas fa-file-alt"></i> {{ student_submission.file.name|slice:"10:" }}
+                                                        </a>
+                                                        <small class="text-muted">Soumis le {{ student_submission.submitted_at|date:"d/m/Y à H:i" }}</small>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+
+                                            <form method="post" action="{% url 'submit_assignment' assignment.id %}" enctype="multipart/form-data" class="submission-form">
+                                                {% csrf_token %}
+                                                <div class="input-group">
+                                                    <input type="file" name="file" class="form-control form-control-sm" required>
+                                                    <button type="submit" class="btn btn-primary btn-sm">
+                                                        {% if student_submission %}
+                                                            <i class="fas fa-sync-alt"></i> Mettre à jour
+                                                        {% else %}
+                                                            <i class="fas fa-upload"></i> Soumettre
+                                                        {% endif %}
+                                                    </button>
+                                                </div>
+                                                <small class="form-text text-muted">Formats acceptés: PDF, DOC, DOCX, ZIP, RAR (max 10MB)</small>
+                                            </form>
+                                        {% endwith %}
+                                    </div>
+                                    {% endif %}
+
+                                    {% if user.is_authenticated and user.is_teacher %}
+                                    <div class="submissions-list mt-3">
+                                        <h6 class="mb-3">Soumissions des étudiants :</h6>
+                                        {% with submissions=assignment.submissions.all %}
+                                            {% if submissions %}
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm table-hover">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Étudiant</th>
+                                                                <th>Date de soumission</th>
+                                                                <th>Fichier</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% for submission in submissions %}
+                                                            <tr>
+                                                                <td>{{ submission.student.username }}</td>
+                                                                <td>{{ submission.submitted_at|date:"d/m/Y à H:i" }}</td>
+                                                                <td>
+                                                                    <a href="{{ submission.file.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                                                        <i class="fas fa-download"></i> Télécharger
+                                                                    </a>
+                                                                </td>
+                                                            </tr>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            {% else %}
+                                                <p class="text-muted">Aucune soumission pour le moment.</p>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    {% endif %}
+                                {% endif %}
+
+                                {% if user.is_authenticated and user.is_teacher %}
+                                    <button class="btn btn-danger btn-sm mt-3 delete-assignment-btn"
+                                            data-id="{{ assignment.id }}"
+                                            data-type="TD">
+                                        <i class="fas fa-trash"></i> Supprimer ce TD
+                                    </button>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- TP Section -->
+            <div class="tp-section">
+                <h3>TP :</h3>
+                <div class="list-group">
+                    {% for assignment in assignments %}
+                        {% if assignment.type == 'TP' %}
+                            <div class="list-group-item" id="assignment-{{ assignment.id }}">
+                                <h5 class="mb-3">{{ assignment.title }}</h5>
+                                <p>{{ assignment.description }}</p>
+
+                                {% if assignment.file %}
+                                    <p><strong>Fichier du TP :</strong>
+                                        <a href="{{ assignment.file.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-download"></i> Télécharger le TP
+                                        </a>
+                                    </p>
+
+                                    {% if user.is_authenticated and user.is_student and is_enrolled %}
+                                    <div class="submission-area mt-3 p-3">
+                                        <h6 class="mb-3">Soumettre votre travail :</h6>
+                                        {% with student_submission=assignment.student_submission %}
+                                            {% if student_submission %}
+                                                <div class="current-submission mb-3">
+                                                    <p class="mb-2"><strong>Votre soumission actuelle :</strong></p>
+                                                    <div class="d-flex align-items-center">
+                                                        <a href="{{ student_submission.file.url }}" target="_blank" class="btn btn-sm btn-outline-info me-2">
+                                                            <i class="fas fa-file-alt"></i> {{ student_submission.file.name|slice:"10:" }}
+                                                        </a>
+                                                        <small class="text-muted">Soumis le {{ student_submission.submitted_at|date:"d/m/Y à H:i" }}</small>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+
+                                            <form method="post" action="{% url 'submit_assignment' assignment.id %}" enctype="multipart/form-data" class="submission-form">
+                                                {% csrf_token %}
+                                                <div class="input-group">
+                                                    <input type="file" name="file" class="form-control form-control-sm" required>
+                                                    <button type="submit" class="btn btn-primary btn-sm">
+                                                        {% if student_submission %}
+                                                            <i class="fas fa-sync-alt"></i> Mettre à jour
+                                                        {% else %}
+                                                            <i class="fas fa-upload"></i> Soumettre
+                                                        {% endif %}
+                                                    </button>
+                                                </div>
+                                                <small class="form-text text-muted">Formats acceptés: PDF, DOC, DOCX, ZIP, RAR (max 10MB)</small>
+                                            </form>
+                                        {% endwith %}
+                                    </div>
+                                    {% endif %}
+
+                                    {% if user.is_authenticated and user.is_teacher %}
+                                    <div class="submissions-list mt-3">
+                                        <h6 class="mb-3">Soumissions des étudiants :</h6>
+                                        {% with submissions=assignment.submissions.all %}
+                                            {% if submissions %}
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm table-hover">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Étudiant</th>
+                                                                <th>Date de soumission</th>
+                                                                <th>Fichier</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% for submission in submissions %}
+                                                            <tr>
+                                                                <td>{{ submission.student.username }}</td>
+                                                                <td>{{ submission.submitted_at|date:"d/m/Y à H:i" }}</td>
+                                                                <td>
+                                                                    <a href="{{ submission.file.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                                                        <i class="fas fa-download"></i> Télécharger
+                                                                    </a>
+                                                                </td>
+                                                            </tr>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            {% else %}
+                                                <p class="text-muted">Aucune soumission pour le moment.</p>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    {% endif %}
+                                {% endif %}
+
+                                {% if user.is_authenticated and user.is_teacher %}
+                                    <button class="btn btn-danger btn-sm mt-3 delete-assignment-btn"
+                                            data-id="{{ assignment.id }}"
+                                            data-type="TP">
+                                        <i class="fas fa-trash"></i> Supprimer ce TP
+                                    </button>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <p>Aucun TD/TP disponible pour ce cours.</p>
+    {% endif %}
+
+    <!-- Suppression cours -->
+    {% if user.is_authenticated and user.is_teacher and user == course.teacher %}
+        <form method="post" action="{% url 'course_delete' course.id %}" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger"
+                    onclick="return confirm('Voulez-vous vraiment supprimer ce cours ?');">
+                Supprimer ce cours
+            </button>
+        </form>
+    {% endif %}
+</div>
+
+<style>
+.submission-area {
+    border: 1px solid #dee2e6;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.current-submission {
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+.submission-form {
+    transition: all 0.3s ease;
+}
+.submission-form:hover {
+    transform: translateY(-2px);
+}
+.list-group-item {
+    margin-bottom: 1rem;
+    border-radius: 0.25rem !important;
+}
+.submissions-list {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    padding: 1rem;
+}
+.table-hover tbody tr:hover {
+    background-color: rgba(0,0,0,.075);
+    cursor: pointer;
+}
+</style>
+
+<!-- Script JavaScript -->
+<script>
+// CSRF helper
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+// Upload TD/TP
+const fileInput = document.getElementById('fileInput');
+const assignmentTypeInput = document.getElementById('assignmentType');
+
+document.getElementById('btnAddTD')?.addEventListener('click', () => {
+    assignmentTypeInput.value = 'TD';
+    fileInput.click();
+});
+document.getElementById('btnAddTP')?.addEventListener('click', () => {
+    assignmentTypeInput.value = 'TP';
+    fileInput.click();
+});
+fileInput?.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+        document.getElementById('uploadForm').submit();
+    }
+});
+
+// Suppression AJAX
+document.querySelectorAll('.delete-assignment-btn').forEach(button => {
+    button.addEventListener('click', async function(e) {
+        e.preventDefault();
+        const assignmentId = this.dataset.id;
+        const type = this.dataset.type;
+        if (!confirm(`Voulez-vous vraiment supprimer ce ${type} ?`)) return;
+
+        // Disable button and show loading state
+        this.disabled = true;
+        const originalText = this.innerHTML;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Suppression...';
+
+        try {
+            const response = await fetch(`/courses/assignment/${assignmentId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Accept': 'application/json',
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Animate removal of the assignment
+                const element = document.getElementById(`assignment-${assignmentId}`);
+                element.style.transition = 'all 0.3s ease-out';
+                element.style.opacity = '0';
+                element.style.transform = 'translateX(-20px)';
+                setTimeout(() => element.remove(), 300);
+
+                // Show success message
+                showAlert('success', data.message || `${type} supprimé avec succès.`);
+            } else {
+                throw new Error(data.error || 'Erreur lors de la suppression');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            // Restore button state
+            this.disabled = false;
+            this.innerHTML = originalText;
+            // Show error message
+            showAlert('danger', error.message || 'Erreur lors de la suppression. Veuillez réessayer.');
+        }
+    });
+});
+
+// Add alert function if not already present
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.role = 'alert';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+
+    // Insert at the top of the content
+    const content = document.querySelector('.container');
+    content.insertBefore(alertDiv, content.firstChild);
+
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        alertDiv.classList.remove('show');
+        setTimeout(() => alertDiv.remove(), 150);
+    }, 5000);
+}
+
+// Enhance submission forms
+document.querySelectorAll('.submission-form').forEach(form => {
+    const fileInput = form.querySelector('input[type="file"]');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+
+    // Show file name when selected
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            const fileName = this.files[0].name;
+            const fileSize = (this.files[0].size / 1024 / 1024).toFixed(2); // in MB
+
+            // Check file size
+            if (this.files[0].size > 10 * 1024 * 1024) { // 10MB
+                showAlert('danger', 'Le fichier est trop volumineux. La taille maximale est de 10MB.');
+                this.value = ''; // Clear the input
+                return;
+            }
+
+            // Update button text
+            submitBtn.innerHTML = `<i class="fas fa-upload"></i> Envoyer "${fileName}" (${fileSize} MB)`;
+        } else {
+            submitBtn.innerHTML = originalBtnText;
+        }
+    });
+
+    // Show loading state on submit
+    form.addEventListener('submit', function() {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+    });
+});
+</script>
+
+{% endblock %}

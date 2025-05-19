@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+{% block content %}
+<main class="container mt-5">
+    <section class="dashboard">
+        <h1 class="mb-4">Tableau de Bord</h1>
+        <p class="welcome-message">Bienvenue, <strong>{{ user.get_full_name|default:user.username }}</strong> !</p>
+        <p class="role">Rôle : <em>{{ user.get_role_display }}</em></p>
+
+
+        <div class="dashboard-actions mb-4">
+            <a href="{% url 'profile' %}" class="btn btn-info">Mon profil</a>
+            {% if user.is_teacher %}
+                <a href="{% url 'course_create' %}" class="btn btn-success">Ajouter un cours</a>
+            {% endif %}
+        </div>
+
+        <hr>
+
+        {% if user.is_student %}
+            <section class="card">
+                <h3>Mes Cours</h3>
+                {% if enrolled_courses %}
+                    <ul class="list-group">
+                        {% for course in enrolled_courses %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ course.title }}
+                                <a href="{% url 'course_detail' course.id %}" class="btn btn-sm btn-outline-primary">Voir</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>Vous n'êtes inscrit à aucun cours pour le moment.</p>
+                {% endif %}
+            </section>
+
+        {% elif user.is_teacher %}
+            <section class="mt-4">
+                <h3>Mes Cours publiés</h3>
+                {% if published_courses %}
+                    <div class="row">
+                        {% for course in published_courses %}
+                            <div class="col-md-4">
+                                <div class="card mb-4 shadow-sm">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ course.title }}</h5>
+                                        <p class="card-text">{{ course.description|truncatewords:20 }}</p>
+                                        <p class="card-text">
+                                            <small class="text-muted">
+                                                Étudiants: {{ course.student_count }} |
+                                                Soumissions: {{ course.submission_count }}
+                                            </small>
+                                        </p>
+                                        <a href="{% url 'course_detail' course.id %}" class="btn btn-primary btn-sm">Voir</a>
+                                        <a href="{% url 'course_edit' course.id %}" class="btn btn-info btn-sm">Modifier</a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>Aucun cours publié pour le moment.</p>
+                {% endif %}
+            </section>
+
+        {% elif user.role == 'admin' %}
+            <!-- Vue d'ensemble -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card card-stats" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Enseignants</h5>
+                            <h2>{{ total_teachers }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-stats" style="background: linear-gradient(135deg, var(--primary-light), var(--primary-color)) !important;">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Étudiants</h5>
+                            <h2>{{ total_students }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-stats" style="background: linear-gradient(135deg, var(--accent-color), var(--primary-light)) !important;">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Cours</h5>
+                            <h2>{{ total_courses }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-stats" style="background: linear-gradient(135deg, #3498db, #2980b9) !important;">
+                        <div class="card-body">
+                            <h5 class="card-title">Revenu Total</h5>
+                            <h2>{{ total_revenue }} €</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Détails des Enseignants -->
+            <section class="card mb-4">
+                <div class="card-body">
+                    <h3>Détails des Enseignants</h3>
+                    {% if teachers %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th>Email</th>
+                                        <th>Cours</th>
+                                        <th>Étudiants</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for teacher in teachers %}
+                                        <tr>
+                                            <td>{{ teacher.get_full_name|default:teacher.username }}</td>
+                                            <td>{{ teacher.email }}</td>
+                                            <td>{{ teacher.course_count }}</td>
+                                            <td>{{ teacher.student_count }}</td>
+                                            <td>
+                                                <form action="{% url 'delete_user' teacher.id %}" method="post" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet enseignant ?');">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p>Aucun enseignant trouvé.</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- Détails des Étudiants -->
+            <section class="card mb-4">
+                <div class="card-body">
+                    <h3>Détails des Étudiants</h3>
+                    {% if students %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th>Email</th>
+                                        <th>Cours inscrits</th>
+                                        <th>Total payé</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for student in students %}
+                                        <tr>
+                                            <td>{{ student.get_full_name|default:student.username }}</td>
+                                            <td>{{ student.email }}</td>
+                                            <td>{{ student.enrolled_courses_count }}</td>
+                                            <td>{{ student.total_payments }} €</td>
+                                            <td>
+                                                <form action="{% url 'delete_user' student.id %}" method="post" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet étudiant ?');">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p>Aucun étudiant trouvé.</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- Détails des Cours -->
+            <section class="card mb-4">
+                <div class="card-body">
+                    <h3>Détails des Cours</h3>
+                    {% if courses %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Titre</th>
+                                        <th>Enseignant</th>
+                                        <th>Inscrits</th>
+                                        <th>Revenu</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for course in courses %}
+                                        <tr>
+                                            <td>{{ course.title }}</td>
+                                            <td>{{ course.teacher.get_full_name|default:course.teacher.username }}</td>
+                                            <td>{{ course.enrollment_count }}</td>
+                                            <td>{{ course.revenue }} €</td>
+                                            <td>
+                                                <form action="{% url 'delete_course' course.id %}" method="post" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce cours ?');">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p>Aucun cours trouvé.</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- Paiements Récents -->
+            <section class="card mb-4">
+                <div class="card-body">
+                    <h3>Paiements Récents</h3>
+                    {% if recent_payments %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Étudiant</th>
+                                        <th>Cours</th>
+                                        <th>Montant</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in recent_payments %}
+                                        <tr>
+                                            <td>{{ payment.created_at|date:"d/m/Y H:i" }}</td>
+                                            <td>{{ payment.student.get_full_name|default:payment.student.username }}</td>
+                                            <td>{{ payment.course.title }}</td>
+                                            <td>{{ payment.amount }} €</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p>Aucun paiement récent.</p>
+                    {% endif %}
+                </div>
+            </section>
+        {% endif %}
+    </section>
+</main>
+
+<style>
+.dashboard .card {
+    margin-bottom: 1.5rem;
+}
+.dashboard .table-responsive {
+    margin-top: 1rem;
+}
+.dashboard .card-stats {
+    color: white;
+}
+.dashboard .card-title {
+    margin-bottom: 0.5rem;
+}
+.dashboard h2 {
+    margin: 0;
+    font-size: 2rem;
+}
+.btn-danger {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+    color: white;
+}
+.btn-danger:hover {
+    background-color: #051630;
+    border-color: #051630;
+}
+.dashboard .table th {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+}
+.dashboard .card-stats .card-title {
+    color: rgba(255, 255, 255, 0.9) !important;
+    border-bottom: none;
+}
+.btn-warning {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: white;
+}
+.btn-warning:hover {
+    background-color: #2980b9;
+    border-color: #2980b9;
+}
+.btn-success {
+    background-color: var(--primary-light);
+    border-color: var(--primary-light);
+    color: white;
+}
+.btn-success:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+</style>
+{% endblock %}

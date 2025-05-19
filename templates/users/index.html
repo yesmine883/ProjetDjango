@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Plateforme E-Learning{% endblock %}
+
+{% block content %}
+<!-- SECTION HERO -->
+<section class="hero py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 hero-text animate-in">
+                <h1 class="display-4 fw-bold mb-4">Bienvenue sur la plateforme E-Learning</h1>
+                <p class="lead mb-4">Accédez à une large gamme de cours, développez vos compétences et façonnez votre avenir professionnel.</p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-4 me-md-2">
+                        <i class="fas fa-user-plus me-2"></i>S'inscrire
+                    </a>
+                    <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg px-4">
+                        <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 hero-image mt-5 mt-lg-0 slide-in-right">
+                <img src="{% static 'images/elearning1.jpg' %}" alt="Illustration E-learning" class="img-fluid rounded shadow-lg">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION FONCTIONNALITÉS -->
+<section class="bg-light py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Fonctionnalités principales</h2>
+            <p class="lead text-muted">Découvrez les outils qui faciliteront votre apprentissage</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-4">
+                            <i class="fas fa-laptop-code fa-2x p-3"></i>
+                        </div>
+                        <h3 class="fs-4 fw-bold">Cours interactifs</h3>
+                        <p class="text-muted">Suivez des cours en ligne, avec des vidéos, des quiz et des supports à télécharger.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-4">
+                            <i class="fas fa-tasks fa-2x p-3"></i>
+                        </div>
+                        <h3 class="fs-4 fw-bold">TP & TD encadrés</h3>
+                        <p class="text-muted">Soumettez vos travaux dirigés et pratiques avec correction personnalisée.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-4">
+                            <i class="fas fa-chart-line fa-2x p-3"></i>
+                        </div>
+                        <h3 class="fs-4 fw-bold">Suivi de progression</h3>
+                        <p class="text-muted">Analysez vos progrès, consultez vos résultats et avancez à votre rythme.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION APPEL À L'ACTION -->
+<section class="cta py-5">
+    <div class="container text-center text-white">
+        <h2 class="display-5 fw-bold mb-4">Prêt à démarrer votre apprentissage ?</h2>
+        <p class="lead mb-4">Rejoignez des milliers d'étudiants qui ont déjà transformé leur carrière</p>
+        <a href="{% url 'register' %}" class="btn btn-light btn-lg px-5 py-3">
+            <i class="fas fa-rocket me-2"></i>Commencez maintenant
+        </a>
+    </div>
+</section>
+
+<style>
+.feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 70px;
+    height: 70px;
+}
+</style>
+{% endblock %}

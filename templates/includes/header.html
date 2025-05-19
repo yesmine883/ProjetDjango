@@ -1,0 +1,76 @@
+  <header class="main-header">
+    <div class="container header-container">
+      <nav class="nav-left">
+        <ul>
+          <li>
+            <a href="{% url 'index' %}" class="site-title">E-learning</a>
+          </li>
+          <li><a href="{% url 'index' %}">Accueil</a></li>
+          {% if user.is_authenticated %}
+            {% if user.is_student %}
+              <li><a href="{% url 'course_list' %}">Cours</a></li>
+                          <li><a href="{% url 'dashboardCourses' %}" class="nav-dashboard">Dashboard</a></li>
+
+            {% endif %}
+            {% if user.is_admin %}
+              <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            {% endif %}
+           
+          {% endif %} 
+        </ul>
+      </nav>
+
+      <nav class="nav-main">
+        <ul>
+          {% if user.is_authenticated %}
+            <li>
+              <a href="{% url 'profile' %}">
+                {% if user.is_teacher %}
+                  Enseignant
+                {% elif user.is_student %}
+                  Étudiant
+                {% elif user.is_admin %}
+                  Administrateur
+                {% endif %}
+                : {{ user.username }}
+              </a>
+            </li>
+            <li><a href="{% url 'logout' %}">Déconnexion</a></li>
+          {% else %}
+            <li><a href="{% url 'login' %}">Connexion</a></li>
+            <li><a href="{% url 'register' %}">Inscription</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+<style>
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+}
+
+.nav-left ul, .nav-main ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.nav-left a, .nav-main a {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+}
+
+.site-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color:rgb(16, 49, 84) !important;
+}
+</style>

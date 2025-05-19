@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Étudiants inscrits au cours : {{ course.title }}</h2>
+
+  {% if students %}
+    <ul class="list-group mt-3">
+      {% for student in students %}
+        <li class="list-group-item">
+          {{ student.get_full_name|default:student.username }} ({{ student.email }})
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Aucun étudiant inscrit à ce cours.</p>
+  {% endif %}
+
+  <a href="{% url 'course_detail' course.id %}" class="btn btn-secondary mt-3">Retour au cours</a>
+</div>
+{% endblock %}

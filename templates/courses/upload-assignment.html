@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Ajouter un {{ assignment_type }} pour le cours : {{ course.title }}</h2>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div class="mb-3">
+      <label for="id_title" class="form-label">Titre</label>
+      <input type="text" name="title" id="id_title" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="id_description" class="form-label">Description</label>
+      <textarea name="description" id="id_description" class="form-control" rows="3"></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="id_file" class="form-label">Fichier (TD/TP)</label>
+      <input type="file" name="file" id="id_file" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-success">Uploader {{ assignment_type }}</button>
+    <a href="{% url 'course_detail' course.id %}" class="btn btn-secondary">Annuler</a>
+  </form>
+</div>
+{% endblock %}

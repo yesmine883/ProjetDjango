@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mes Paiements{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-4 border-bottom pb-2">
+                <i class="fas fa-credit-card me-2 text-primary"></i>Mes Paiements
+            </h1>
+        </div>
+    </div>
+
+    {% if payments %}
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-primary text-white">
+                        <tr>
+                            <th class="py-3">ID Paiement</th>
+                            <th class="py-3">Date</th>
+                            <th class="py-3">Montant</th>
+                            <th class="py-3">Statut</th>
+                            <th class="py-3">Cours</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td class="py-3">{{ payment.id }}</td>
+                            <td class="py-3">{{ payment.created_at|date:"d/m/Y H:i" }}</td>
+                            <td class="py-3 fw-bold">{{ payment.amount }} €</td>
+                            <td class="py-3">
+                                {% if payment.status == 'COMPLETED' %}
+                                    <span class="badge bg-success">Complété</span>
+                                {% elif payment.status == 'PENDING' %}
+                                    <span class="badge bg-warning text-dark">En attente</span>
+                                {% elif payment.status == 'FAILED' %}
+                                    <span class="badge bg-danger">Échoué</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ payment.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3">
+                                <a href="{% url 'course_detail' payment.course.id %}" class="text-decoration-none">
+                                    {{ payment.course.title }}
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>Vous n'avez aucun paiement enregistré.
+    </div>
+    <div class="text-center mt-4">
+        <a href="{% url 'course_list' %}" class="btn btn-primary">
+            <i class="fas fa-book me-2"></i>Découvrir les cours
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

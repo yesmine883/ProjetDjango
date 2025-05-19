@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">Cours disponibles</h2>
+  
+  
+  <div class="row">
+    {% for course in courses %}
+    <div class="col-md-4 mb-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">{{ course.title }}</h5>
+          <p class="card-text">{{ course.description|truncatewords:20 }}</p>
+          <p class="card-text">
+            <small class="text-muted">Par: {{ course.teacher.get_full_name|default:course.teacher.username }}</small>
+          </p>
+          <p class="card-text">
+            {% if course.price == 0 %}
+              <span class="badge bg-success">Gratuit</span>
+            {% else %}
+              <span class="badge bg-primary">{{ course.price }} €</span>
+            {% endif %}
+          </p>
+          <a href="{% url 'course_detail' course.id %}" class="btn btn-primary">Voir le cours</a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      {% if user.is_student %}
+        <div class="alert alert-info">
+          Vous êtes déjà inscrit à tous les cours disponibles. Consultez votre <a href="{% url 'dashboard' %}">tableau de bord</a> pour y accéder.
+        </div>
+      {% else %}
+        <div class="alert alert-info">
+          Aucun cours n'est disponible pour le moment.
+        </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

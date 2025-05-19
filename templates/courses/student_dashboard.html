@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>Tableau de bord étudiant</h1>
+
+  {% if courses %}
+    <h3>Vos cours inscrits :</h3>
+    <ul class="list-group">
+      {% for course in courses %}
+        <li class="list-group-item">
+          <a href="{% url 'course_detail' course.id %}">{{ course.title }}</a>
+          <span class="text-muted"> - {{ course.description|truncatechars:50 }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Vous n'êtes inscrit à aucun cours pour le moment.</p>
+  {% endif %}
+</div>
+{% endblock %}

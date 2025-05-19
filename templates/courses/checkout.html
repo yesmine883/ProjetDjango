@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white py-3">
+          <h2 class="card-title mb-0 fs-4">
+            <i class="fas fa-shopping-cart me-2"></i>Finaliser votre achat
+          </h2>
+        </div>
+        <div class="card-body p-4">
+          <div class="row mb-4">
+            <div class="col-md-8">
+              <h3 class="fs-5 fw-bold">{{ course.title }}</h3>
+              <p class="text-muted mb-0">{{ course.description|truncatewords:20 }}</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+              <div class="price-tag bg-light p-3 rounded text-center">
+                <span class="fs-3 fw-bold text-primary">{{ course.price }} €</span>
+                <div class="small text-muted">Prix TTC</div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <div class="d-flex align-items-center mb-3 mb-md-0">
+                <div class="bg-primary text-white rounded-circle p-2 me-3">
+                  <i class="fas fa-lock"></i>
+                </div>
+                <div>
+                  <div class="fw-bold">Paiement sécurisé</div>
+                  <div class="small text-muted">Vos données sont protégées</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <form method="post" action="" class="d-grid">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary btn-lg py-3">
+                  <i class="fas fa-credit-card me-2"></i>Payer {{ course.price }} €
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div class="mt-4 small text-muted">
+            <p class="mb-0">
+              <i class="fas fa-info-circle me-1"></i>
+              En finalisant votre achat, vous acceptez nos conditions générales de vente et notre politique de confidentialité.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-4">
+        <a href="{% url 'course_detail' course.id %}" class="text-decoration-none">
+          <i class="fas fa-arrow-left me-1"></i>Retour aux détails du cours
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

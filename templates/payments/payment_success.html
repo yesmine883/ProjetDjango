@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="alert alert-success">
+    <h2 class="mb-3">Paiement réussi ✅</h2>
+    {% if messages %}
+      {% for message in messages %}
+        <p class="mb-3">{{ message }}</p>
+      {% endfor %}
+    {% else %}
+      <p class="mb-3">Merci pour votre inscription !</p>
+    {% endif %}
+  </div>
+
+  {% if course %}
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">{{ course.title }}</h5>
+        <p class="card-text">Vous pouvez maintenant accéder à tout le contenu du cours.</p>
+        <a href="{% url 'course_detail' course.id %}" class="btn btn-primary">Voir le cours</a>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="mt-3">
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">Retour au tableau de bord</a>
+    <a href="{% url 'course_list' %}" class="btn btn-outline-secondary">Voir d'autres cours</a>
+  </div>
+</div>
+{% endblock %}

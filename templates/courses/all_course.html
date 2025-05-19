@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h1>{{ course.title }}</h1>
+  <p>{{ course.description }}</p>
+  <p><strong>Prix :</strong> {{ course.price }} €</p>
+
+  {% if user.is_authenticated and user.is_student %}
+    {% if not is_enrolled %}
+      {% if course.price > 0 %}
+        <a href="{% url 'checkout' course.id %}" class="btn btn-warning mt-3">Payer et s'inscrire</a>
+      {% else %}
+        <a href="{% url 'enroll_course' course.id %}" class="btn btn-success mt-3">S'inscrire gratuitement</a>
+      {% endif %}
+    {% endif %}
+  {% endif %}
+
+  <div class="alert alert-info mt-4">
+    <strong>Note :</strong> Vous devez être inscrit à ce cours pour voir les TD et TP.
+  </div>
+</div>
+{% endblock %}

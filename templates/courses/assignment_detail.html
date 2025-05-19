@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>{{ assignment.title }}</h2>
+  <p>{{ assignment.description }}</p>
+
+  {% if user.is_authenticated and user.is_student %}
+    <h4>Soumettre votre travail</h4>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ submission_form.as_p }}
+      <button type="submit" class="btn btn-success">Soumettre</button>
+    </form>
+  {% elif user.is_authenticated and user.is_teacher %}
+    <h4>Travaux soumis</h4>
+    <ul>
+      {% for submission in assignment.submissions.all %}
+        <li>
+          {{ submission.student.username }} — 
+          <a href="{{ submission.file.url }}" download>Télécharger</a> — 
+          <small>Soumis le {{ submission.submitted_at|date:"d/m/Y H:i" }}</small>
+        </li>
+      {% empty %}
+        <li>Aucune soumission reçue.</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+{% endblock %}

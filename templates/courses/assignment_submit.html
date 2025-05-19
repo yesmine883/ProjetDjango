@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="mb-0">{{ assignment.title }}</h2>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+            <div class="messages mb-4">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="assignment-info mb-4">
+                <p><strong>Description:</strong> {{ assignment.description }}</p>
+                {% if assignment.due_date %}
+                <p><strong>Date limite:</strong> {{ assignment.due_date }}</p>
+                {% endif %}
+            </div>
+
+            {% if existing_submission %}
+            <div class="alert alert-info">
+                <p><strong>Soumission existante:</strong></p>
+                <p>Déposé le: {{ existing_submission.submitted_at|date:"d/m/Y H:i" }}</p>
+                <p>Fichier actuel: <a href="{{ existing_submission.file.url }}" target="_blank">{{ existing_submission.file.name }}</a></p>
+                <p class="mb-0">Vous pouvez soumettre un nouveau fichier pour remplacer l'actuel.</p>
+            </div>
+            {% endif %}
+
+            {% if assignment.due_date and assignment.due_date < today %}
+            <div class="alert alert-warning">
+                <h4 class="alert-heading">Date limite dépassée!</h4>
+                <p>La date limite de soumission ({{ assignment.due_date }}) est dépassée. Vous ne pouvez plus soumettre ce devoir.</p>
+            </div>
+            {% else %}
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        {% if existing_submission %}
+                        Mettre à jour la soumission
+                        {% else %}
+                        Soumettre le devoir
+                        {% endif %}
+                    </button>
+                    <a href="{% url 'course_detail' course_id=assignment.course.id %}" class="btn btn-secondary">Retour au cours</a>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+.assignment-info {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.25rem;
+}
+</style>
+{% endblock %}

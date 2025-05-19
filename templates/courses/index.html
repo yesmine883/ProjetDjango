@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <h1 class="text-center">Bienvenue sur la plateforme E-Learning</h1>
+  <p class="text-center">Inscrivez-vous pour accéder aux cours, TP et TD proposés par nos enseignants.</p>
+  <div class="text-center mt-4">
+    <a href="{% url 'login' %}" class="btn btn-primary">Se connecter</a>
+    <a href="{% url 'register' %}" class="btn btn-outline-secondary">Créer un compte</a>
+  </div>
+</div>
+{% endblock %}
+
